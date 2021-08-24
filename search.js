@@ -320,6 +320,7 @@ function isPrivateBrowsingSupportedEvenIfThisIsSafari() {
 	return false;
 }
 
+// this function checks whether response retrieved from API is valid and not undefined/a robot -sm
 function validResponse(response) {
 	if (typeof response != 'undefined' && response != null) {
 		if (typeof response['results'] != 'undefined' && response['results'] != null) {
@@ -329,15 +330,18 @@ function validResponse(response) {
 	return false;
 }
 
+// BEST BET SEARCH -sm
 function doSearchBestBet() {
 	$('#bentobox-bestbet').hide();
 	// ??? to do below?
 	return false; // TODO remove later 
 
-	// using .ajax method to access .bestbet.php code
+	// using .ajax method to access .bestbet.php code -sm
 	if (typeof requestBestBet == Object) {
 		requestBestBet.abort();
 	}
+	// assign requestBestBet to jquery .ajax call to retrieve data with search term query applied -sm
+	// query must interact with bestbet.php somehow -sm
 	requestBestBet = $.ajax({
 		url: host + "/api/bestbet.php",
 		method: "GET",
@@ -346,7 +350,8 @@ function doSearchBestBet() {
 		},
 		dataType: "json",
 		success: function (response) {
-
+			// if statements to check for undefined response and whether the response is a robot -sm
+			// run areyouhuman.php if true -sm
 			if (typeof response != 'undefined' && response != null) {
 				if (typeof response.possibleRobot !== undefined) {
 					if (response.possibleRobot == true) {
@@ -355,6 +360,7 @@ function doSearchBestBet() {
 					}
 				}
 			}
+			// call the animateBentoBox function to start even cascade of results in best bet bentobox 
 			animateBentoBox('#bentobox-bestbet', function () {
 				if (validResponse(response)) {
 					$('#bentobox-bestbet').show();
@@ -365,12 +371,7 @@ function doSearchBestBet() {
 						bestresultResult = $('#bentobox-bestbet .bentobox-content > .bestresult-result');
 						bestresultResultLast = $('#bentobox-bestbet .bentobox-content > .bestresult-result').eq(i);
 						if (result.beyondCollection) {
-							//identifierType = result.data['Media Type'] ? '<div class="bestresult-identifierType"><div>' + result.data['Media Type'] + '</div></div>' : '';
-
-							//bestresultResultLast.append('<div class="bestresult-beyondcollection">Sorry, this item is not immediately available.<br><a href="'+result.url+'">See Fulfillment Options</a><br>See if this item is immediately available on <a href="https://proxy.lib.wayne.edu/login?url=https://scholar.google.com/scholar?q='+result.title+'&btnG=&hl=en&as_sdt=0%2C23">Google Scholar</a></div>');
 							bestresultResultLast.append('<div class="bestresult-beyondcollection">Sorry, this item is not immediately available.</div>');
-							//alert(result.data.Type);
-							//alert(result.data.Type != 'eBook');
 							if (result.data.Type != 'Book' && result.data.Type != 'eBook') {
 								bestresultResultLast.find('.bestresult-beyondcollection').append('<br>First, check <a href="https://proxy.lib.wayne.edu/login?url=https://scholar.google.com/scholar?q=' + $(result.title).text() + '&btnG=&hl=en&as_sdt=0%2C23" target="_blank">Google Scholar</a> for immediate access.');
 								bestresultResultLast.find('.bestresult-beyondcollection').append('<br>Then, <a href="' + result.url + '">See Options</a> to obtain a copy.');
@@ -378,41 +379,25 @@ function doSearchBestBet() {
 								bestresultResultLast.find('.bestresult-beyondcollection').append('<br><a href="' + result.url + '">See Options</a> to obtain a copy.');
 							}
 						}
-
-						// _paq.push(['setCustomVariable', 1, 'Best Bet # of Results', response['results'].length, 'page']);
-
 						if (response['results'].length > 1) {
 							identifierType = result.identifierType ? '<div class="bestresult-identifierType"><div><span>' + result.identifierType + '</span> of ' + result.identifier + '</div></div>' : '';
 							bestresultResultLast.append(identifierType);
 						}
-
 						if (result.data && result.data['Media Type']) {
-							//identifierType = result.data['Media Type'] ? '<div class="bestresult-identifierType"><div>' + result.data['Media Type'] + '</div></div>' : '';
 							bestresultResultLast.find('.bestresult-identifierType').append('<div class="bestresult-mediatype">' + result.data['Media Type'] + '</div>');
 						}
-
 						resultType = result.type ? '<span class="bestresult-type">' + result.type + '</span>' : '';
 						bestresultResultLast.append('<div class="bestresult-result-content" style="word-wrap: break-word;">' + resultType + '<a style="display:inline;" href="' + result.url + '">' + result.title + '</a></div>');
-						//bestresultResultLastContent = bestresultResultLast.find('.bestresult-result-content');
-
-
 
 						if (result.image) {
-
-							// console.log("if result image");
 							var img = new Image();
 							img.src = result.image;
-
+							// uses jQuery .eq method see https://api.jquery.com/eq/
 							bestresultResult.eq(i).find('.bestresult-result-content').before('<a class="bestresult-result-content-img-a" style="display:none;border:0;" href="' + result.url + '"><img style="width:100px;max-width:100px;float:left;margin-right:10px;margin-top:3px;" src="' + result.image + '" /></a>');
 							bestresultResult.eq(i).find('.bestresult-result-content').css('margin-left', '120px');
-
-							// bestresultResultLast.append('<img src="sdfsd" style="display:none;" />');
 							img.onload = function () {
-								// alert(this.width + 'x' + this.height);
 								if (this.width > 1 && this.height > 1) {
 									bestresultResult.eq(i).find('a.bestresult-result-content-img-a').css('display', 'block');
-									// bestresultResult.eq(i).find('.bestresult-result-content').before('<a class="bestresult-result-content-img-a" style="border:0;" href="' + result.url + '"><img style="width:100px;max-width:100px;float:left;margin-right:10px;margin-top:3px;" src="' + result.image + '" /></a>');
-									// bestresultResult.eq(i).find('.bestresult-result-content').css('margin-left', '120px');
 								} else {
 									bestresultResult.eq(i).find('.bestresult-result-content').css('margin-left', '0');
 								}
@@ -420,18 +405,11 @@ function doSearchBestBet() {
 						} else {
 
 						}
+						// the decision to use v was a choice... -sm
 						if (result.data) {
-							// bestresultResultLast.find('.bestresult-result-content').append('<table class="bestresult-result-content-data" style="margin-top:10px;"></table>');
 							bestresultResultLast.find('.bestresult-result-content').append('<table class="bestresult-result-content-data"></table>');
 							$.each(result.data, function (i, v) {
 								if (v) {
-									// console.log(v.length);
-									// if (v.length > 200) {
-									// 	bestresultResultLast.find('.bestresult-result-content-data').append('<tr><td style="width:1%;white-space:nowrap;padding-right:10px;vertical-align: text-top;color:#888;">' + i + ':</td><td style="" class="search-phraseNOOO bestresult-result-content-data-abstract" data-abstract-full="' + v + '">' + v.substring(0, 200) + '... <span class="bestresult-result-content-data-abstract-more">More</span>' + '</td></tr>');
-									// } else {
-									// 	bestresultResultLast.find('.bestresult-result-content-data').append('<tr><td style="width:1%;white-space:nowrap;padding-right:10px;vertical-align: text-top;color:#888;">' + i + ':</td><td style="" class="search-phraseNOOO">' + v + '</td></tr>');
-									// }
-
 									if (v.length > 200) {
 										bestresultResultLast.find('.bestresult-result-content-data').append('<tr><td style="width:1%;white-space:nowrap;padding-right:10px;vertical-align: text-top;color:#888;">' + i + ':</td><td style="" class="search-phraseNOOO bestresult-result-content-data-abstract" data-abstract-full="' + v + '">' + v.substring(0, 200) + '...' + '</td></tr>');
 									} else {
@@ -439,62 +417,13 @@ function doSearchBestBet() {
 									}
 								}
 							});
-
-							// $('.bestresult-result-content-data-abstract-more').on('click', function(){
-							// 	$(this).parent().html( $(this).parent().attr('data-abstract-full') );
-							// });
 						}
-
 					});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-					// // $("#searchresults-nest a").addClass('piwik_link');
-					// $("#searchresults-nest a").on('click', function(){
-					//   console.log("piwik tracking link clicked");
-					//   _paq.push(['trackLink', $(this).attr('href'), 'link']);
-					// });
-
-
-
-
-
-
-
-
+					// easy enough, if no results add a div that says "No Results" -sm
 				} else {
 					$('#bentobox-bestbet .bentobox-content').html('<div class="noresults">No Results</div>');
-
 				}
 			});
-
-
 		}
 	});
 }
